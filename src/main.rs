@@ -17,22 +17,20 @@ pub extern "C" fn _start() -> ! {
 
     rustos::init();
 
-    unsafe {
-        *(0xdeadbeef as *mut u64) = 42;
-    };
+    //
 
     #[cfg(test)]
     test_main();
 
     println!("No crashing");
-    loop{}
+    rustos::hlt_loop();
 }
 
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    rustos::hlt_loop();
 }
 
 #[cfg(test)]
