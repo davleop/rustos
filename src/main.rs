@@ -15,9 +15,15 @@ use rustos::println;
 pub extern "C" fn _start() -> ! {
     println!("Hello, World{}", "!");
 
+    rustos::init();
+
+    // invoking breakpoint
+    x86_64::instructions::interrupts::int3();
+
     #[cfg(test)]
     test_main();
 
+    println!("No crashing");
     loop{}
 }
 
@@ -32,4 +38,9 @@ fn panic(info: &PanicInfo) -> ! {
 #[panic_handler]
 fn pnaic(info: &PanicInfo) -> ! {
     rustos::test_panic_handler(info)
+}
+
+#[test_case]
+fn trivial_assertion() {
+    assert_eq!(1,1);
 }
