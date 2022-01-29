@@ -1,12 +1,18 @@
 // memory.rs
 
 use x86_64::{
-    structures::paging::PageTable,
+    structures::paging::{PageTable, OffsetPageTable},
     VirtAddr,
     PhysAddr,
 };
 
-pub unsafe fn active_level_4_table(physical_memory_offset: VirtAddr)
+pub unsafe fn init(physical_memory_offset: VirtAddr)
+    -> OffsetPageTable<'static> {
+    let level_4_table = active_level_4_table(physical_memory_offset);
+    OffsetPageTable::new(level_4_table, physical_memory_offset)
+}
+
+unsafe fn active_level_4_table(physical_memory_offset: VirtAddr)
     -> &'static mut PageTable
 {
     use x86_64::registers::control::Cr3;
@@ -20,7 +26,7 @@ pub unsafe fn active_level_4_table(physical_memory_offset: VirtAddr)
     &mut *page_table_ptr // unsafe
 }
 
-pub unsafe fn translate_addr(addr: VirtAddr, physical_memory_offset: VirtAddr)
+/*pub unsafe fn translate_addr(addr: VirtAddr, physical_memory_offset: VirtAddr)
     -> Option<PhysAddr>
 {
     translate_addr_inner(addr, physical_memory_offset)
@@ -45,7 +51,7 @@ fn translate_addr_inner(addr: VirtAddr, physical_memory_offset: VirtAddr)
         // convert the frame into a page table reference
         let virt = physical_memory_offset + frame.start_address().as_u64();
         let table_ptr: *const PageTable = virt.as_ptr();
-        let table = unsafe {&*table_ptr};
+        let table = unsafe { &*table_ptr };
 
         // read the page table entry and update `frame`
         let entry = &table[index];
@@ -58,4 +64,5 @@ fn translate_addr_inner(addr: VirtAddr, physical_memory_offset: VirtAddr)
 
     // calculate the physical address by adding the page offset
     Some(frame.start_address() + u64::from(addr.page_offset()))
-}
+}*/
+
