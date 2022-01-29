@@ -8,11 +8,25 @@
 #![reexport_test_harness_main = "test_main"]
 
 pub mod gdt;
+pub mod memory;
 pub mod serial;
 pub mod interrupts;
 pub mod vga_buffer;
 
 use core::panic::PanicInfo;
+
+#[cfg(test)]
+use bootloader::{entry_point, BootInfo};
+
+#[cfg(test)]
+entry_point!(test_kernel_main);
+
+#[cfg(test)]
+fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
+    init();
+    test_main();
+    hlt_loop();
+}
 
 pub fn init() {
     gdt::init();
