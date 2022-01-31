@@ -64,21 +64,6 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     rustos::hlt_loop();
 }
 
-/*#[no_mangle]
-pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
-    println!("Hello, World{}", "!");
-
-    rustos::init();
-
-    //
-
-    #[cfg(test)]
-    test_main();
-
-    println!("No crashing");
-    rustos::hlt_loop();
-}*/
-
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
