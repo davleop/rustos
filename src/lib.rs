@@ -18,8 +18,6 @@ pub mod vga_buffer;
 extern crate alloc;
 use core::panic::PanicInfo;
 
-
-
 #[cfg(test)]
 use bootloader::{entry_point, BootInfo};
 
