@@ -1,5 +1,6 @@
 // lib.rs
 
+#![feature(alloc_error_handler)]
 #![no_std]
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
@@ -10,10 +11,14 @@
 pub mod gdt;
 pub mod memory;
 pub mod serial;
+pub mod allocator;
 pub mod interrupts;
 pub mod vga_buffer;
 
+extern crate alloc;
 use core::panic::PanicInfo;
+
+
 
 #[cfg(test)]
 use bootloader::{entry_point, BootInfo};
@@ -93,3 +98,8 @@ fn panic(info: &PanicInfo) -> ! {
     test_panic_handler(info)
 }
 
+
+#[alloc_error_handler]
+fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
+    panic!("allocation error: {:?}", layout)
+}
