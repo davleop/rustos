@@ -1,5 +1,3 @@
-// vga_buffer.rs
-
 use core::fmt;
 use spin::Mutex;
 use volatile::Volatile;

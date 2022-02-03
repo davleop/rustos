@@ -1,14 +1,19 @@
-// stack_overflow.rs
-
 #![no_std]
 #![no_main]
 #![feature(abi_x86_interrupt)]
 
 use lazy_static::lazy_static;
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
-
+use x86_64::structures::idt::{
+    InterruptDescriptorTable,
+    InterruptStackFrame
+};
 use core::panic::PanicInfo;
-use rustos::{serial_print, exit_qemu, QemuExitCode, serial_println};
+use rustos::{
+    serial_print,
+    exit_qemu,
+    QemuExitCode,
+    serial_println
+};
 
 lazy_static! {
     static ref TEST_IDT: InterruptDescriptorTable = {

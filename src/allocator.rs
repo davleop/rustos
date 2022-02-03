@@ -1,24 +1,26 @@
-// allocator.rs
-
 use x86_64::{
     structures::paging::{
         mapper::MapToError,
-        FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB,
+        FrameAllocator,
+        Mapper,
+        Page,
+        PageTableFlags,
+        Size4KiB,
     },
     VirtAddr,
 };
 
-pub const HEAP_START: usize = 0x_4444_4444_0000;
-pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
-
-use linked_list_allocator::LockedHeap;
-
 pub mod bump;
 pub mod linked_list;
 pub mod fixed_size_block;
+
 use bump::BumpAllocator;
 use linked_list::LinkedListAllocator;
+use linked_list_allocator::LockedHeap;
 use fixed_size_block::FixedSizeBlockAllocator;
+
+pub const HEAP_START: usize = 0x_4444_4444_0000;
+pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
 
 pub struct Locked<A> {
     inner: spin::Mutex<A>,

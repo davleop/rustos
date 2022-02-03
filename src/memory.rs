@@ -1,15 +1,21 @@
-// memory.rs
-
 use x86_64::{
     structures::paging::{
-        Page, PhysFrame, PageTable, OffsetPageTable,
-        Mapper, Size4KiB, FrameAllocator
+        Page,
+        PhysFrame,
+        PageTable,
+        OffsetPageTable,
+        Mapper,
+        Size4KiB,
+        FrameAllocator
     },
     VirtAddr,
     PhysAddr,
 };
 
-use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
+use bootloader::bootinfo::{
+    MemoryMap,
+    MemoryRegionType
+};
 
 pub struct BootInfoFrameAllocator {
     memory_map: &'static MemoryMap,
@@ -99,5 +105,3 @@ unsafe fn active_level_4_table(physical_memory_offset: VirtAddr)
 
     &mut *page_table_ptr // unsafe
 }
-
-

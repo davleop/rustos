@@ -1,5 +1,3 @@
-// heap_allocation.rs
-
 #![no_std]
 #![no_main]
 #![feature(custom_test_frameworks)]
@@ -7,9 +5,16 @@
 #![reexport_test_harness_main = "test_main"]
 
 extern crate alloc;
-
-use bootloader::{entry_point, BootInfo};
+use alloc::{
+    vec::Vec,
+    boxed::Box
+};
+use bootloader::{
+    entry_point,
+    BootInfo
+};
 use core::panic::PanicInfo;
+use rustos::allocator::HEAP_SIZE;
 
 entry_point!(main);
 
@@ -36,8 +41,6 @@ fn panic(info: &PanicInfo) -> ! {
     rustos::test_panic_handler(info)
 }
 
-use alloc::boxed::Box;
-
 #[test_case]
 fn simple_allocation() {
     let heap_value_1 = Box::new(41);
@@ -45,8 +48,6 @@ fn simple_allocation() {
     assert_eq!(*heap_value_1, 41);
     assert_eq!(*heap_value_2, 13);
 }
-
-use alloc::vec::Vec;
 
 #[test_case]
 fn large_vec() {
@@ -57,8 +58,6 @@ fn large_vec() {
     }
     assert_eq!(vec.iter().sum::<u64>(), (n - 1) * n / 2);
 }
-
-use rustos::allocator::HEAP_SIZE;
 
 #[test_case]
 fn many_boxes() {

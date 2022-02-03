@@ -1,24 +1,85 @@
-// main.rs
-
+// Runtime Attributes
 #![no_std]
 #![no_main]
 
+// Testing Attributes
 #![feature(custom_test_frameworks)]
 #![test_runner(rustos::test_runner)]
-
 #![reexport_test_harness_main = "test_main"]
 
+// build-std
+// Allocations and Collections
 extern crate alloc;
-use alloc::{boxed::Box, vec, vec::Vec, rc::Rc};
-
-use bootloader::{BootInfo, entry_point};
-
+use alloc::{
+    boxed::Box,
+    vec::Vec,
+    rc::Rc
+};
+// panic type...
 use core::panic::PanicInfo;
-use rustos::println;
-use rustos::task::{Task, executor::Executor, keyboard};
+
+// Using this bootloader library as of now
+// will add custom bootloader later...
+use bootloader::{
+    BootInfo,
+    entry_point
+};
+
+// local libs
+use rustos::task::{
+    println,
+    Task,
+    executor::Executor,
+    keyboard
+};
 
 entry_point!(kernel_main);
 
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    use rustos::{
+        memory::{
+            self,
+            BootInfoFrameAllocator
+        },
+        allocator
+    };
+    use x86_64::{
+        structures::paging::{
+            Translate,
+            Page
+        },
+        VirtAddr
+    };
+
+    // our first print with self-defined macro
+    println!("Hello World{}", "!");
+
+    // initialize system
+    rustos::init();
+
+    // Here, we want to get the physical memory offset so that we can
+    // initialize memory mapper and the frame allocator
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let mut mapper = unsafe {
+        memory::init(phys_mem_offset)
+    };
+    let mut frame_allocator = unsafe {
+        BootInfoFrameAllocator::init(&boot_info.memory_map)
+    };
+
+    allocator::init_heap(&mut mapper, &mut frame_allocator)
+        .expect("heap initialization failed");
+    
+    // setup testing main function
+    #[cfg(test)]
+    test_main();
+
+    // run executor (multitasking)
+    let mut executor = Executor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.spawn(Task::new(keyboard::print_keypresses()));
+    executor.run();
+}
 
 async fn async_number() -> u32 {
     42
@@ -29,65 +90,7 @@ async fn example_task() {
     println!("async number: {}", number);
 }
 
-
-fn kernel_main(boot_info: &'static BootInfo) -> ! {
-    use rustos::{
-        memory::{self,BootInfoFrameAllocator},
-        allocator
-    };
-    use x86_64::{
-        structures::paging::{Translate, Page},
-        VirtAddr
-    };
-
-    println!("Hello World{}", "!");
-    rustos::init();
-
-    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
-    let mut mapper = unsafe { memory::init(phys_mem_offset) };
-    let mut frame_allocator = unsafe {
-        BootInfoFrameAllocator::init(&boot_info.memory_map)
-    };
-
-    let page = Page::containing_address(VirtAddr::new(0xdeadbeaf000));
-    memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
-
-    allocator::init_heap(&mut mapper, &mut frame_allocator)
-        .expect("heap initialization failed");
-
-    let addresses = [
-        // the identity-mapped vga buffer page
-        0xb8000,
-        // some code page
-        0x201008,
-        // some stack page
-        0x0100_0020_1a10,
-        // virtual address mapped to physical address 0
-        boot_info.physical_memory_offset,
-    ];
-
-    // start main code running
-
-    for &address in &addresses {
-        let virt = VirtAddr::new(address);
-        let phys = mapper.translate_addr(virt);
-        println!("{:?} -> {:?}", virt, phys);
-    }
-
-    let mut executor = Executor::new();
-    executor.spawn(Task::new(example_task()));
-    executor.spawn(Task::new(keyboard::print_keypresses()));
-    executor.run();
-
-    // end main code running
-
-    #[cfg(test)]
-    test_main();
-
-    println!("It did not crash!");
-    rustos::hlt_loop();
-}
-
+/// Called on panic
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {

@@ -2,6 +2,8 @@
 name = "rustos"
 version = "0.1.0"
 edition = "2018"
+authors = ["david <davleop1999@gmail.com>"]
+readme = "README.md"
 
 [[test]]
 name = "should_panic"
